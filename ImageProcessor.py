@@ -105,6 +105,7 @@ class MotionDetector():
             self._isDetecting = True
             thread = Thread(target = self._startDetectingOnThread)
             thread.start()
+            
         else:
             print "Already detecting, ignoring call to startDetecting()"
     
@@ -126,12 +127,18 @@ class MotionDetector():
         else:
             print "Not detecting, ignoring call to stopDetecting()"
 
+import sys
+print "Type 'stop' to stop"
 detector = MotionDetector()
 detector.startDetecting()
-time.sleep(10)
-detector.stopDetecting()
 
-print "end of program"
+input = raw_input()
+if input == "stop":
+    detector.stopDetecting() 
+    print "sys.exit()"
+    print "end of program"
+
+
 
 
 
