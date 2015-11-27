@@ -86,6 +86,7 @@ class PiCameraSnapshotter():
 
 import time
 from datetime import datetime
+from threading import Thread
 class MotionDetector():
     _snapShotter = None
     _isDetecting = False
@@ -102,17 +103,22 @@ class MotionDetector():
     def startDetecting(self):
         if self._isDetecting == False:
             self._isDetecting = True
-            if self._snapShotter == None:
-                snapShotter = PiCameraSnapshotter(repeats = True, interval = 1.0)
-                snapShotter.delegate = self
- 
-            snapShotter.startSnapShotting()
-            while self._isDetecting == True:
-                time.sleep(1)
-
-            snapShotter.stopSnapShotting()
+            thread = Thread(target = self._startDetectingOnThread)
+            thread.start()
         else:
             print "Already detecting, ignoring call to startDetecting()"
+    
+    def _startDetectingOnThread(self):
+        if self._snapShotter == None:
+            snapShotter = PiCameraSnapshotter(repeats = True, interval = 1.0)
+            snapShotter.delegate = self
+ 
+        snapShotter.startSnapShotting()
+        while self._isDetecting == True:
+            time.sleep(1)
+
+        snapShotter.stopSnapShotting()
+
 
     def stopDetecting(self):
         if self._isDetecting == True:
@@ -120,13 +126,11 @@ class MotionDetector():
         else:
             print "Not detecting, ignoring call to stopDetecting()"
 
-
-
-
 detector = MotionDetector()
 detector.startDetecting()
 time.sleep(10)
 detector.stopDetecting()
+
 print "end of program"
 
 
