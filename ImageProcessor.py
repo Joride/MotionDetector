@@ -1,6 +1,4 @@
 
-import time
-from datetime import datetime
 
 # time = datetime.now()
 # filename = "capture-%04d%02d%02d-%02d%02d%02d.bmp" % (time.year, time.month, time.day, time.hour, time.minute, time.second)
@@ -34,6 +32,7 @@ from datetime import datetime
 #
 from threading import Timer
 import picamera
+
 class PiCameraSnapshotter():
     delegate = None
     _isSnapshotting = False
@@ -56,13 +55,15 @@ class PiCameraSnapshotter():
 
             # tell the camera to take a picture
             imageSize = (240, 135,)#(1920, 1080)
-            fileName = self.delegate.fileName()
+            fileName = self.delegate.snapShotterFileNameForCapture()
+            print "capturing image %s" % fileName
             self._camera.capture(
                 fileName,
                 format='bmp',
                 use_video_port=False,
                 resize=imageSize,
-                splitter_port=0,)
+                splitter_port=0)
+            self.delegate.snapShotterDidCaptureImage(self, fileName)
         else:
             print "Timer fired but not taking a snapshot, because because stopSnapShotting() was called before the timer fired."
     
@@ -83,24 +84,50 @@ class PiCameraSnapshotter():
             self._isSnapshotting = False
             self._camera = None
 
-
 import time
+from datetime import datetime
 class MotionDetector():
-    def fileName(self):
+    _snapShotter = None
+    _isDetecting = False
+    
+    # PiCameraSnapShotter callbacks
+    def snapShotterFileNameForCapture(self):
         fileName = datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
         fileName = "%s.bmp" % fileName
         return fileName
+
+    def snapShotterDidCaptureImage(self, snapShotter, imagePath):
+        print "image captured at %s" % imagePath
  
     def startDetecting(self):
-        snapShotter = PiCameraSnapshotter(repeats = True, interval = 1.0)
-        snapShotter.delegate = self
+        if self._isDetecting == False:
+            self._isDetecting = True
+            if self._snapShotter == None:
+                snapShotter = PiCameraSnapshotter(repeats = True, interval = 1.0)
+                snapShotter.delegate = self
  
-        snapShotter.startSnapShotting()
-        time.sleep(10)
-        snapShotter.stopSnapShotting()
+            snapShotter.startSnapShotting()
+            while self._isDetecting == True:
+                time.sleep(1)
+
+            snapShotter.stopSnapShotting()
+        else:
+            print "Already detecting, ignoring call to startDetecting()"
+
+    def stopDetecting(self):
+        if self._isDetecting == True:
+            self._isDetecting = False
+        else:
+            print "Not detecting, ignoring call to stopDetecting()"
+
+
+
 
 detector = MotionDetector()
 detector.startDetecting()
+time.sleep(10)
+detector.stopDetecting()
+print "end of program"
 
 
 
