@@ -1,3 +1,10 @@
+# This file can be compared with Objective-C's main.m in which the 
+# UIApplicationMain() function sets up an infinite runloop.
+#
+# Here, the MotionDetector class sets up an infinite runloop when 
+# startDetecting() is called. In contrast to Objective-C's UIApplicationMain(),
+# this mainLoop can be cancelled.
+
 import sys
 from MotionDetector import MotionDetector
 try:
@@ -11,12 +18,4 @@ try:
 
 except (KeyboardInterrupt, SystemExit):
     detector.stopDetecting() 
-
-
-
-
-
-
-
-
-
+    

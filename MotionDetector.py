@@ -2,34 +2,40 @@ from PIL import Image
 class ImageAnalyzer():
     _isCancelled = False
     _singlePixelThreshold = 0
-    def __init__(self, singlePixelThreshold = 15):
+    _previousImage = None
+    _previousImageData = None
+    
+    def __init__(self,
+        initialImagePath = None,
+        singlePixelThreshold = 15):
+
         self._singlePixelThreshold = singlePixelThreshold
+        self._previousImage = Image.open(initialImagePath)
+        self._previousImageData = self._previousImage.load()
 
-
-    def compareImages(self, imagePath1, imagePath2):
+    def compareNextImage(self, imagePath):
         # process an image
 
-        image1 = Image.open(imagePath1)
-        imageSize1= image1.size
-        x1 = imageSize1[0]
-        y1 = imageSize1[1]
-        print image1.size
+        newImage = Image.open(imagePath)
+        newImageSize= newImage.size
+        x1 = newImageSize[0]
+        y1 = newImageSize[1]
 
-        image2 = Image.open(imagePath2)
-        imageSize2= image2.size
-        x2 = imageSize2[0]
-        y2 = imageSize2[1]
-        print image2.size
+        previousImageSize = self._previousImage.size
+        x2 = previousImageSize[0]
+        y2 = previousImageSize[1]
 
-        totalNumberOfPixels = x2 * y2
+        returnValue = None
+        numberOfPixels = x2 * y2
         if not ((x2 is x1) and (y2 is y1)):
-            print "Images of different sizes cannot be compared"
+            print "Images of different sizes (%s and %s) cannot be compared" % (
+                newImageSize, 
+                previousImageSize)
         else:
-            pixelData1 = image1.load()
-            pixelData2 = image2.load()
+            newImageData = newImage.load()
 
-            differentPixelCount = 0
-            totalSquaredDifference = 0
+            changedPixelsCount = 0
+            totalSquaredDiff = 0
             
             # compare each pixel's values
             for xPixel in range(0, x1):
@@ -40,18 +46,24 @@ class ImageAnalyzer():
                         break
 
                     # values range from 0 - 255
-                    (r1,g1,b1) = pixelData1[xPixel,yPixel]
-                    (r2,g2,b2) = pixelData2[xPixel,yPixel]
+                    (r1,g1,b1) = newImageData[xPixel,yPixel]
+                    (r2,g2,b2) = self._previousImageData[xPixel,yPixel]
                     
                     difference = abs(g1 - g2)
                     if difference > self._singlePixelThreshold:
-                        differentPixelCount += 1
-                        totalSquaredDifference += difference
+                        changedPixelsCount += 1
+                        totalSquaredDiff += difference
                     
-            if self._isCancelled:
-                return None
-            else:
-                return (differentPixelCount, totalSquaredDifference, totalNumberOfPixels)
+            if not self._isCancelled:
+                returnValue = (
+                    changedPixelsCount,
+                    totalSquaredDiff,
+                    numberOfPixels)
+
+        self._previousImage = newImage
+        self._previousImageData = newImageData
+
+        return returnValue
     
     def cancel(self):
         self._isCancelled = True
@@ -66,7 +78,6 @@ class MotionDetector():
     _snapShotter = None
     _isDetecting = False
     _imageAnalyzer = None
-    _previousImagePath = None
 
     # PiCameraSnapShotter callbacks
     def snapShotterFileNameForCapture(self):
@@ -75,26 +86,20 @@ class MotionDetector():
         return fileName
 
     def snapShotterDidCaptureImage(self, snapShotter, imagePath):
-        if self._previousImagePath == None:
-            self._previousImagePath = imagePath
+        if self._imageAnalyzer == None:
+            self._imageAnalyzer = ImageAnalyzer(initialImagePath = imagePath)
         else:
-            if self._imageAnalyzer == None:
-                self._imageAnalyzer = ImageAnalyzer()
+            analysisResult = self._imageAnalyzer.compareNextImage(
+                imagePath)
+            if analysisResult != None:
+                (differentPixelCount,
+                    totalSquaredDifference,
+                    totalNumberOfPixels) = analysisResult
+                print " "
+                print "differentPixelCount: %s" % differentPixelCount
+                print "totalSquaredDifference: %s" % totalSquaredDifference
+                print "totalNumberOfPixels: %s" % totalNumberOfPixels
 
-            if imagePath is not None and self._previousImagePath is not None:
-                analysisResult = self._imageAnalyzer.compareImages(imagePath, self._previousImagePath)
-                if analysisResult != None:
-                    (differentPixelCount,
-                        totalSquaredDifference,
-                        totalNumberOfPixels) = analysisResult
-                    print "differentPixelCount: %s" % differentPixelCount
-                    print "totalSquaredDifference: %s" % totalSquaredDifference
-                    print "totalNumberOfPixels: %s" % totalNumberOfPixels
-
-            self._previousImagePath = imagePath
-
-        
- 
     def startDetecting(self):
         if self._isDetecting == False:
             self._isDetecting = True
@@ -114,7 +119,6 @@ class MotionDetector():
             time.sleep(1)
 
         snapShotter.stopSnapShotting()
-
 
     def stopDetecting(self):
         if self._isDetecting == True:

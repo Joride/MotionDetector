@@ -46,3 +46,4 @@ class PiCameraSnapshotter():
         if self._isSnapshotting == True:
             self._isSnapshotting = False
             self._camera = None
+            
