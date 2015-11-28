@@ -73,6 +73,7 @@ import time
 from datetime import datetime
 from threading import Thread
 from PiCameraSnapshotter import PiCameraSnapshotter
+import os
 
 class MotionDetector():
     _snapShotter = None
@@ -99,6 +100,7 @@ class MotionDetector():
                 print "differentPixelCount: %s" % differentPixelCount
                 print "totalSquaredDifference: %s" % totalSquaredDifference
                 print "totalNumberOfPixels: %s" % totalNumberOfPixels
+        os.remove(imagePath)
 
     def startDetecting(self):
         if self._isDetecting == False:
