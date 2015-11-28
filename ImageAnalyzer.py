@@ -4,7 +4,7 @@ class ImageAnalyzer():
     _singlePixelThreshold = 0
     _previousImage = None
     _previousImageData = None
-    
+
     def __init__(self,
         initialImagePath = None,
         singlePixelThreshold = 15):
@@ -29,14 +29,14 @@ class ImageAnalyzer():
         numberOfPixels = x2 * y2
         if not ((x2 is x1) and (y2 is y1)):
             print "Images of different sizes (%s and %s) cannot be compared" % (
-                newImageSize, 
+                newImageSize,
                 previousImageSize)
         else:
             newImageData = newImage.load()
 
             changedPixelsCount = 0
             totalSquaredDiff = 0
-            
+
             # compare each pixel's values
             for xPixel in range(0, x1):
                 if self._isCancelled == True:
@@ -48,12 +48,12 @@ class ImageAnalyzer():
                     # values range from 0 - 255
                     (r1,g1,b1) = newImageData[xPixel,yPixel]
                     (r2,g2,b2) = self._previousImageData[xPixel,yPixel]
-                    
+
                     difference = abs(g1 - g2)
                     if difference > self._singlePixelThreshold:
                         changedPixelsCount += 1
                         totalSquaredDiff += difference
-                    
+
             if not self._isCancelled:
                 returnValue = (
                     changedPixelsCount,
@@ -64,6 +64,6 @@ class ImageAnalyzer():
         self._previousImageData = newImageData
 
         return returnValue
-    
+
     def cancel(self):
         self._isCancelled = True

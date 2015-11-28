@@ -8,7 +8,7 @@ class PiCameraSnapshotter():
     def __init__(self, repeats = False, interval = 1):
         self.repeats = repeats
         self.interval = interval
-     
+
     def _timerFired(self):
         if self._isSnapshotting == True:
             if self._camera == None:
@@ -29,9 +29,9 @@ class PiCameraSnapshotter():
             self.delegate.snapShotterDidCaptureImage(self, fileName)
         else:
             print "Timer fired but not taking a snapshot, because because stopSnapShotting() was called before the timer fired."
-    
+
         if self.repeats and self._isSnapshotting == True:
-            thread = Timer(self.interval, self._timerFired, args=[])        
+            thread = Timer(self.interval, self._timerFired, args=[])
             thread.start()
         else:
             print "Timer fired, but not starting a new timer, because because stopSnapShotting() was called while we were taking a snapshot."
@@ -46,4 +46,3 @@ class PiCameraSnapshotter():
         if self._isSnapshotting == True:
             self._isSnapshotting = False
             self._camera = None
-            

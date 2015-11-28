@@ -38,15 +38,15 @@ class MotionDetector():
             self._isDetecting = True
             thread = Thread(target = self._startDetectingOnThread)
             thread.start()
-            
+
         else:
             print "Already detecting, ignoring call to startDetecting()"
-    
+
     def _startDetectingOnThread(self):
         if self._snapShotter == None:
             snapShotter = PiCameraSnapshotter(repeats = True, interval = 1.0)
             snapShotter.delegate = self
- 
+
         snapShotter.startSnapShotting()
         while self._isDetecting == True:
             time.sleep(1)
