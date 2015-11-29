@@ -7,9 +7,14 @@ from PiCameraSnapshotter import PiCameraSnapshotter
 import os
 
 class MotionDetector():
+    _hasIgnoredFirstImage = False
     _snapShotter = None
     _isDetecting = False
     _imageAnalyzer = None
+    _previousPixelCounts = []
+    _previousSquaredDifference = []
+    numberOfImagesToAverage = 5
+
 
     # PiCameraSnapShotter callbacks
     def snapShotterFileNameForCapture(self):
@@ -18,6 +23,14 @@ class MotionDetector():
         return fileName
 
     def snapShotterDidCaptureImage(self, snapShotter, imagePath):
+        # the first image is ignored, as it is very different form the second
+        # one, even when no change in the scene is present. (Maybe the PiCam
+        # still has to focus or adjust light settings).
+        if not self._hasIgnoredFirstImage:
+            self._hasIgnoredFirstImage = True
+            os.remove(imagePath)
+            return
+
         if self._imageAnalyzer == None:
             self._imageAnalyzer = ImageAnalyzer(initialImagePath = imagePath)
         else:
@@ -27,11 +40,38 @@ class MotionDetector():
                 (differentPixelCount,
                     totalSquaredDifference,
                     totalNumberOfPixels) = analysisResult
-                print " "
-                print "differentPixelCount: %s" % differentPixelCount
-                print "totalSquaredDifference: %s" % totalSquaredDifference
-                print "totalNumberOfPixels: %s" % totalNumberOfPixels
+                self.analyzeNewImageResult(
+                    differentPixelCount,
+                    totalSquaredDifference)
+
         os.remove(imagePath)
+
+    def analyzeNewImageResult(
+        self,
+        differentPixelCount,
+        totalSquaredDifference):
+
+        self._previousPixelCounts.append(differentPixelCount)
+        self._previousSquaredDifference.append(totalSquaredDifference)
+
+        if len(self._previousSquaredDifference) > self.numberOfImagesToAverage:
+            self._previousSquaredDifference.pop(0)
+            self._previousPixelCounts.pop(0)
+
+        if len(self._previousPixelCounts) == self.numberOfImagesToAverage:
+            pixelSum = sum(self._previousSquaredDifference)
+            pixelLength = len(self._previousSquaredDifference)
+            averagePixelDifference = pixelSum / float(pixelLength)
+
+            differenceSum = sum(self._previousPixelCounts)
+            differenceLength = len(self._previousPixelCounts)
+            averagePixelCount = differenceSum / float(differenceLength)
+
+            print ""
+            print "averagePixelDifference %s" % averagePixelDifference
+            print "averagePixelCount %s" % averagePixelCount
+            print ""
+
 
     def startDetecting(self):
         if self._isDetecting == False:
