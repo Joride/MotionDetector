@@ -5,8 +5,9 @@
 # startDetecting() is called. In contrast to Objective-C's UIApplicationMain(),
 # this mainLoop can be cancelled.
 
-import sys
+import sys # to catch the KeyboardInterrupt and SystemExit
 from MotionDetector import MotionDetector
+
 try:
     print "Type anything and hit <enter> to stop"
     detector = MotionDetector()

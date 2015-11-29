@@ -4,7 +4,7 @@ import time
 from datetime import datetime
 from threading import Thread
 from PiCameraSnapshotter import PiCameraSnapshotter
-import os
+import os # to delete imagefiles
 
 class MotionDetector():
     _hasIgnoredFirstImage = False
@@ -13,7 +13,7 @@ class MotionDetector():
     _imageAnalyzer = None
     _previousPixelCounts = []
     _previousSquaredDifference = []
-    numberOfImagesToAverage = 5
+    numberOfImagesToAverage = 3
 
 
     # PiCameraSnapShotter callbacks
@@ -67,11 +67,13 @@ class MotionDetector():
             differenceLength = len(self._previousPixelCounts)
             averagePixelCount = differenceSum / float(differenceLength)
 
-            print ""
-            print "averagePixelDifference %s" % averagePixelDifference
-            print "averagePixelCount %s" % averagePixelCount
-            print ""
+            pixels = abs(differentPixelCount - averagePixelCount)
+            squaredDelta = None
+            if abs(averagePixelDifference) > 0:
+                squaredDelta = abs(totalSquaredDifference / averagePixelDifference)
 
+            if squaredDelta > 1.1 and pixels > 10:
+                print "MOTION DETECTED"
 
     def startDetecting(self):
         if self._isDetecting == False:
