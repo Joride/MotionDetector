@@ -16,10 +16,6 @@ class MotionDetector():
     numberOfImagesToAverage = 3
     motionDetectorHandler = None
 
-    # def __init__(self):
-    #     print "self.motionDetectorHandler = None"
-    #     self.motionDetectorHandler = None
-
     # PiCameraSnapShotter callbacks
     def snapShotterFileNameForCapture(self):
         fileName = datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
@@ -79,7 +75,7 @@ class MotionDetector():
             # these are some of the values that can be tweaked for
             # a better detection experience (maybe a true)
             if squaredDelta > 1.1 and pixels > 10:
-                if self.motionDetectorHandler is not None:
+                if self.motionDetectorHandler is None:
                     timestamp = datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
                     print "%s - Motion detected, but there is no handler." %timestamp
                 else:
