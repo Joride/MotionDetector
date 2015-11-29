@@ -7,10 +7,13 @@
 
 import sys # to catch the KeyboardInterrupt and SystemExit
 from MotionDetector import MotionDetector
+from MotionDectectorHandler import MotionDectectorHandler
 
 try:
     print "Type anything and hit <enter> to stop"
+    handler = MotionDectectorHandler()
     detector = MotionDetector()
+    detector.motionDetectorHandler = handler
     detector.startDetecting()
     input = raw_input()
 
@@ -19,3 +22,4 @@ try:
 
 except (KeyboardInterrupt, SystemExit):
     detector.stopDetecting()
+

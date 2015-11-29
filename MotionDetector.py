@@ -14,7 +14,11 @@ class MotionDetector():
     _previousPixelCounts = []
     _previousSquaredDifference = []
     numberOfImagesToAverage = 3
+    motionDetectorHandler = None
 
+    # def __init__(self):
+    #     print "self.motionDetectorHandler = None"
+    #     self.motionDetectorHandler = None
 
     # PiCameraSnapShotter callbacks
     def snapShotterFileNameForCapture(self):
@@ -72,15 +76,20 @@ class MotionDetector():
             if abs(averagePixelDifference) > 0:
                 squaredDelta = abs(totalSquaredDifference / averagePixelDifference)
 
+            # these are some of the values that can be tweaked for
+            # a better detection experience (maybe a true)
             if squaredDelta > 1.1 and pixels > 10:
-                print "MOTION DETECTED"
+                if self.motionDetectorHandler is not None:
+                    timestamp = datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
+                    print "%s - Motion detected, but there is no handler." %timestamp
+                else:
+                    self.motionDetectorHandler.motionDetectorDetectedMotion(self)
 
     def startDetecting(self):
         if self._isDetecting == False:
             self._isDetecting = True
             thread = Thread(target = self._startDetectingOnThread)
             thread.start()
-
         else:
             print "Already detecting, ignoring call to startDetecting()"
 
