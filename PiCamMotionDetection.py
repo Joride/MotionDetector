@@ -7,7 +7,7 @@
 
 import sys # to catch the KeyboardInterrupt and SystemExit
 from MotionDetection.MotionDetector import MotionDetector
-from MotionDetection.MotionDectectorHandler import MotionDectectorHandler
+from MotionDectectorHandler import MotionDectectorHandler
 
 try:
     print "Type anything and hit <enter> to stop"
